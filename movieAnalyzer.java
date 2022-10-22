@@ -15,16 +15,103 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.Collection;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MovieAnalyzer {
+  class movieData {
+    String Poster_Link;
+    String Series_Title;
+    int Released_Year;
+    String Certificate;
+    int Runtime;
+    String[] Genre; // todo: delete following min
+    float IMDB_Rating;
+    String Overview;
+    int Meta_score;
+    String Director;
+    String Star1;
+    String Star2;
+    String Star3;
+    String Star4;
+    long No_of_Votes;
+    long Grosses;
 
-  public MovieAnalyzer(String dataset_path) {}
+    public MovieAnalyzer() {}
+  }
+
+  List<movieData> allMovies = new ArrayList<movieData>();
+
+  public MovieAnalyzer(String dataset_path) {
+    BufferedReader reader = null;
+    String line = null;
+    try {
+      reader = new BufferedReader(new FileReader(dataset_path));
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    // (?:,|\n|^)      # all values must start at the beginning of the file,
+    //                 #   the end of the previous line, or at a comma
+    // (               # single capture group for ease of use; CSV can be either...
+    //   "             # ...(A) a double quoted string, beginning with a double quote (")
+    //     (?:         #        character, containing any number (0+) of
+    //       (?:"")*   #          escaped double quotes (""), or
+    //       [^"]*     #          non-double quote characters
+    //     )*          #        in any order and any number of times
+    //   "             #        and ending with a double quote character
+
+    //   |             # ...or (B) a non-quoted value
+
+    //   [^",\n]*      # containing any number of characters which are not
+    //                 # double quotes ("), commas (,), or newlines (\n)
+
+    //   |             # ...or (C) a single newline or end-of-file character,
+    //                 #           used to capture empty values at the end of
+    //   (?:\n|$)      #           the file or at the ends of lines
+    // )
+    Pattern REGEX = Pattern.compile(
+      "(?:,|\\n|^)(\"(?:(?:\"\")*[^\"]*)*\"|[^\",\\n]*|(?:\\n|$))"
+    );
+
+    try {
+      List listField;
+      while ((line = reader.readLine()) != null) {
+        if (lineNum == 0) {
+          continue;
+        }
+        listField = new ArrayList<>();
+        String str;
+        Matcher eachCell = REGEX.matcher(line);
+        while (eachCell.find()) {
+          str = eachCell.group();
+          if (str.startsWith("\"")) {
+            str = str.substring(1, str.length() - 1);
+            if (str.length() == 1) {
+              str = "";
+            } else {
+              str = str.substring(0, str.length() - 1);
+            }
+            str = str.replaceAll("\"\"", "\"");
+            listField.add(str);
+          }
+        }
+        movieData thisMovie = new movieData();
+        for (int i = 0; i < listField.size(); i++) {
+          thisMovie.Poster_Link = listField.toString();
+        }
+      }
+      lineNum++;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
 
   public Map<Integer, Integer> getMovieCountByYear() {}
 

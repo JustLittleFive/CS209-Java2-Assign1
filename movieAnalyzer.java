@@ -22,27 +22,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.*;
 
-class MovieAnalyzer {
+public class MovieAnalyzer {
 
   public MovieAnalyzer(String dataset_path) {}
 
-  public Map<Integer, Integer> getMovieCountByYear() {
+  public Map<Integer, Integer> getMovieCountByYear() {}
 
-  }
+  public Map<String, Integer> getMovieCountByGenre() {}
 
-  public Map<String, Integer> getMovieCountByGenre(){}
+  public Map<List<String>, Integer> getCoStarCount() {}
 
-  public Map<List<String>, Integer> getCoStarCount(){}
+  public List<String> getTopMovies(int top_k, String by) {}
 
-  public List<String> getTopMovies(int top_k, String by){}
+  public List<String> getTopStars(int top_k, String by) {}
 
-  public List<String> getTopStars(int top_k, String by){}
-
-  public List<String> searchMovies(String genre, float min_rating, int max_runtime){}
-
-
-
-
-
-
+  public List<String> searchMovies(
+    String genre,
+    float min_rating,
+    int max_runtime
+  ) {}
 }

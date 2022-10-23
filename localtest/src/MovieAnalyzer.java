@@ -121,26 +121,14 @@ public class MovieAnalyzer {
       Pattern preProcess = Pattern.compile("(\"[^\"]*(\"{2})*[^\"]*\")*[^,]*,");
 
       List<String> listField;
-      int lineNum = 0;
+      // int lineNum = 1;
       while ((line = reader.readLine()) != null) {
-        // if (lineNum == 0) {
-        //   lineNum++;
-        //   continue;
-        // }
         listField = new LinkedList<>();
         String str;
         line += ", ";
         Matcher eachCell = preProcess.matcher(line);
         while (eachCell.find()) {
           str = eachCell.group();
-          // if (str.startsWith("\"")) {
-          //   str = str.substring(1, str.length() - 1);
-          //   // if (str.length() == 1) {
-          //   //   str = "";
-          //   // } else {
-          //   str = str.substring(0, str.length() - 2);
-          //   // }
-          // }
           str = str.replaceAll("(?sm)\"?([^\"]*(\"{2})*[^\"]*)\"?.*,", "$1");
           str = str.replaceAll("(?sm)(\"(\"))", "$2");
           // str = str.replaceAll("\"\"", "\"");
@@ -148,9 +136,9 @@ public class MovieAnalyzer {
           // System.out.print(lineNum);
           // System.out.print(": ");
           // System.out.println(str);
-          lineNum++;
+          // lineNum++;
         }
-        //        try{
+
         movieData thisMovie = new movieData(
           listField.get(0),
           listField.get(1),
@@ -170,35 +158,6 @@ public class MovieAnalyzer {
           listField.get(15)
         );
         allMovies.add(thisMovie);
-        lineNum = 0;
-        //        }catch(Exception e){
-        //          continue;
-        //        }
-        // try {
-        //   thisMovie.Poster_Link = listField.get(0);
-        //   thisMovie.Series_Title = listField.get(1);
-        //   thisMovie.Released_Year = Integer.parseInt(listField.get(2));
-        //   thisMovie.Certificate = listField.get(3);
-        //   thisMovie.Runtime =
-        //     Integer.parseInt(listField.get(4).substring(0, 3).trim());
-        //   String[] listCells = listField.get(5).split(", ");
-        //   Arrays.sort(listCells, (str1, str2) -> str1.compareTo(str2));
-        //   thisMovie.Genre = new ArrayList<String>(Arrays.asList(listCells));
-        //   thisMovie.IMDB_Rating = Float.parseFloat(listField.get(6));
-        //   thisMovie.Overview = Long.parseLong(listField.get(7));
-        //   thisMovie.Meta_score = Integer.parseInt(listField.get(8));
-        //   thisMovie.Director = listField.get(9);
-        //   thisMovie.Stars.add(listField.get(10));
-        //   thisMovie.Stars.add(listField.get(11));
-        //   thisMovie.Stars.add(listField.get(12));
-        //   thisMovie.Stars.add(listField.get(13));
-        //   thisMovie.No_of_Votes = Long.parseLong(listField.get(14));
-        //   thisMovie.GRS = Long.parseLong(listField.get(15));
-        //   allMovies.add(thisMovie);
-        // } catch (Exception e) {
-        //   continue;
-        // }
-        // lineNum++;
       }
     } catch (Exception e) {
       e.printStackTrace();
@@ -234,63 +193,10 @@ public class MovieAnalyzer {
         ret.put(thisYear, 1);
       }
     }
-    // todo: convert to stream.groupingby
     return ret;
   }
 
-  // public Map<Integer, Integer> getMovieCountByYear() {
-  //   Map<Integer, Integer> map = new TreeMap<Integer, Integer>(
-  //     new Comparator<Integer>() {
-  //       @Override
-  //       public int compare(Integer o1, Integer o2) {
-  //         return (int) (o2 - o1);
-  //       }
-  //     }
-  //   );
-
-  //   for (int i = 0; i < allMovies.size(); i++) {
-  //     int temp_year = allMovies.get(i).Released_Year;
-  //     if (map.get(temp_year) == null) {
-  //       map.put(temp_year, 1);
-  //     } else {
-  //       map.put(temp_year, map.get(temp_year) + 1);
-  //     }
-  //   }
-  //   return map;
-  // }
-
   public Map<String, Integer> getMovieCountByGenre() {
-    // List<String> labels = new ArrayList<String>();
-    // for (Iterator<E> it = allMovies.iterator(); it.hasNext();) {
-    //   movieData thisMovie = it.next();
-    //   for (String label : thisMovie.Genre) {
-    //     if (labels.contains(label)) {
-    //       labels.add(label);
-    //     }
-    //   }
-    // }
-
-    // Map<String, Integer> res = allMovies.stream().collect(
-    //   Collectors.groupingBy(
-    //     movieData.Genre.stream().anyMatch(element -> labels.contains(element)),
-    //     Collectors.counting()
-    //   )
-    // );
-
-    // Map<String, Integer> res = allMovies
-    //   .stream()
-    //   .collect(
-    //     Collectors.groupingBy(
-    //       Collectors.mapping(
-    //         movieData.Genre
-    //           .stream()
-    //           .anyMatch(element -> labels.contains(element)),
-    //         movieData.Genre
-    //       ),
-    //       Collectors.counting()
-    //     )
-    //   );
-
     Map<String, Integer> res = new HashMap<String, Integer>();
 
     allMovies.forEach(
@@ -352,31 +258,13 @@ public class MovieAnalyzer {
       }
     );
 
-    // Map<List<String>, Integer> ret = new LinkedHashMap<List<String>, Integer>();
-    // res
-    //   .entrySet()
-    //   .stream()
-    //   // .sorted(Map.Entry.comparingByKey())
-    //   .forEachOrdered(x -> ret.put(x.getKey(), x.getValue()));
-
     return res;
   }
 
   public int compareOverview(movieData movie1, movieData movie2) {
     String overview1 = movie1.Overview.trim();
     String overview2 = movie2.Overview.trim();
-    return overview1.length() - overview2.length();
-    // if (overview1.length() > overview2.length()) {
-    //   return 1;
-    // }
-    // if (overview1.length() < overview2.length()) {
-    //   return 0;
-    // }
-    // if (movie1.Overview.compareTo(movie2.Overview) > 0) {
-    //   return 1;
-    // } else {
-    //   return 0;
-    // }
+    return overview1.compareTo(overview2);
   }
 
   public List<String> getTopMovies(int top_k, String by) {
@@ -393,9 +281,7 @@ public class MovieAnalyzer {
     } else {
       Collections.sort(
         allMovies,
-        (movieData movie1, movieData movie2) ->
-          // movie2.Overview.compareTo(movie1.Overview)
-          compareOverview(movie2, movie1)
+        (movieData movie1, movieData movie2) -> compareOverview(movie2, movie1)
       );
     }
 
@@ -416,6 +302,7 @@ public class MovieAnalyzer {
       (movieData movie1, movieData movie2) ->
         movie1.Series_Title.compareTo(movie2.Series_Title)
     );
+
     if (by.equals("rating")) {
       Map<String, Double[]> starRating = new HashMap<>();
       allMovies.forEach(
@@ -493,21 +380,6 @@ public class MovieAnalyzer {
           .collect(Collectors.toList());
       return res;
     }
-    //    List<String> res = new ArrayList<String>();
-    //    allMovies
-    //      .stream()
-    //      .limit(top_k)
-    //      .forEachOrdered(
-    //        movie ->
-    //          movie.Stars.forEach(
-    //            star -> {
-    //              if (!res.contains(star)) {
-    //                res.add(star);
-    //              }
-    //            }
-    //          )
-    //      );
-
   }
 
   public List<String> searchMovies(

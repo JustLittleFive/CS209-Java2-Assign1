@@ -38,7 +38,7 @@ public class MovieAnalyzer {
     int Released_Year;
     String Certificate;
     int Runtime; // todo: delete following min
-    static List<String> Genre;
+    List<String> Genre;
     float IMDB_Rating;
     Long Overview;
     int Meta_score;

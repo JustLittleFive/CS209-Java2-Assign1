@@ -16,15 +16,20 @@
  */
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.lang.Math;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,137 +43,217 @@ public class MovieAnalyzer {
     int Released_Year;
     String Certificate;
     int Runtime; // todo: delete following min
-    static List<String> Genre;
+    //    List<String> Genre;
+    List<String> Genre;
     float IMDB_Rating;
-    Long Overview;
+    String Overview;
     int Meta_score;
     String Director;
-    List<String> Stars;
+    List<String> Stars = new ArrayList<>();
     long No_of_Votes;
-    long Grosses;
+    long GRS;
 
-    public void MovieAnalyzer() {}
+    movieData(
+      String Poster_Link,
+      String Series_Title,
+      String Release_Year,
+      String Certificate,
+      String Runtime,
+      String Genre,
+      String IMDB_Rating,
+      String Overview,
+      String Meta_score,
+      String Director,
+      String Star1,
+      String Star2,
+      String Star3,
+      String Star4,
+      String votes,
+      String GRS
+    ) {
+      this.Poster_Link = Poster_Link.trim();
+      this.Series_Title = Series_Title.trim();
+      this.Released_Year = Integer.parseInt(Release_Year.trim());
+      this.Certificate = Certificate.trim();
+      this.Runtime = Integer.parseInt(Runtime.substring(0, 3).trim());
+      String[] listCells = Genre.split(", ");
+      Arrays.sort(listCells, (str1, str2) -> str1.compareTo(str2));
+      this.Genre = new ArrayList<String>(Arrays.asList(listCells));
+      this.IMDB_Rating = Float.parseFloat(IMDB_Rating.trim());
+      this.Overview = Overview;
+      if (Meta_score.length() == 0) {
+        this.Meta_score = 0;
+      } else {
+        this.Meta_score = Integer.parseInt(Meta_score.trim());
+      }
+      //      this.Meta_score = Integer.parseInt(Meta_score.trim());
+      this.Director = Director.trim();
+      this.Stars.add(Star1.trim());
+      this.Stars.add(Star2.trim());
+      this.Stars.add(Star3.trim());
+      this.Stars.add(Star4.trim());
+      this.No_of_Votes = Long.parseLong(votes.trim());
+      GRS = GRS.replaceAll(",", "");
+      if (GRS.length() == 0) {
+        this.GRS = 0;
+      } else {
+        this.GRS = Long.parseLong(GRS.trim());
+      }
+    }
   }
 
-  List<movieData> allMovies = new ArrayList<movieData>();
+  ArrayList<movieData> allMovies = new ArrayList<movieData>();
 
   public MovieAnalyzer(String dataset_path) {
-    BufferedReader reader = null;
-    FileReader inputR = null;
-    String line = null;
     try {
-      inputR = new FileReader(dataset_path, StandardCharsets.UTF_8);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    try {
-      reader = new BufferedReader(inputR);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+      BufferedReader reader = new BufferedReader(
+        new InputStreamReader(new FileInputStream(dataset_path), "UTF-8")
+      );
+      reader.readLine();
+      String line = null;
+      Pattern REGEX = Pattern.compile(
+        "(?:,|\\n|^)(\"(?:(?:\"\")*[^\"]*)*\"|[^\",\\n]*|(?:\\n|$))"
+      );
+      Pattern preProcess = Pattern.compile("(\"[^\"]*(\"{2})*[^\"]*\")*[^,]*,");
 
-    // (?:,|\n|^)      # all values must start at the beginning of the file,
-    //                 #   the end of the previous line, or at a comma
-    // (               # single capture group for ease of use; CSV can be either...
-    //   "             # ...(A) a double quoted string, beginning with a double quote (")
-    //     (?:         #        character, containing any number (0+) of
-    //       (?:"")*   #          escaped double quotes (""), or
-    //       [^"]*     #          non-double quote characters
-    //     )*          #        in any order and any number of times
-    //   "             #        and ending with a double quote character
-
-    //   |             # ...or (B) a non-quoted value
-
-    //   [^",\n]*      # containing any number of characters which are not
-    //                 # double quotes ("), commas (,), or newlines (\n)
-
-    //   |             # ...or (C) a single newline or end-of-file character,
-    //                 #           used to capture empty values at the end of
-    //   (?:\n|$)      #           the file or at the ends of lines
-    // )
-    Pattern REGEX = Pattern.compile(
-      "(?:,|\\n|^)(\"(?:(?:\"\")*[^\"]*)*\"|[^\",\\n]*|(?:\\n|$))"
-    );
-
-    try {
-      List listField;
+      List<String> listField;
       int lineNum = 0;
       while ((line = reader.readLine()) != null) {
-        if (lineNum == 0) {
-          continue;
-        }
-        listField = new ArrayList<>();
+        // if (lineNum == 0) {
+        //   lineNum++;
+        //   continue;
+        // }
+        listField = new LinkedList<>();
         String str;
-        Matcher eachCell = REGEX.matcher(line);
+        line += ", ";
+        Matcher eachCell = preProcess.matcher(line);
         while (eachCell.find()) {
           str = eachCell.group();
-          if (str.startsWith("\"")) {
-            str = str.substring(1, str.length() - 1);
-            if (str.length() == 1) {
-              str = "";
-            } else {
-              str = str.substring(0, str.length() - 1);
-            }
-            str = str.replaceAll("\"\"", "\"");
-            listField.add(str);
-          }
+          // if (str.startsWith("\"")) {
+          //   str = str.substring(1, str.length() - 1);
+          //   // if (str.length() == 1) {
+          //   //   str = "";
+          //   // } else {
+          //   str = str.substring(0, str.length() - 2);
+          //   // }
+          // }
+          str = str.replaceAll("(?sm)\"?([^\"]*(\"{2})*[^\"]*)\"?.*,", "$1");
+          str = str.replaceAll("(?sm)(\"(\"))", "$2");
+          // str = str.replaceAll("\"\"", "\"");
+          listField.add(str);
+          // System.out.print(lineNum);
+          // System.out.print(": ");
+          // System.out.println(str);
+          lineNum++;
         }
-        movieData thisMovie = new movieData();
-        int i = 0;
-        try {
-          thisMovie.Poster_Link = listField.get(i++).toString();
-          thisMovie.Series_Title = listField.get(i++).toString();
-          thisMovie.Released_Year =
-            Integer.valueOf(listField.get(i++).toString());
-          thisMovie.Certificate = listField.get(i++).toString();
-          thisMovie.Runtime =
-            Integer.valueOf(
-              listField.get(i++).toString().substring(0, 3).trim()
-            );
-          String[] listCells = listField.get(i++).toString().split(", ");
-
-          Arrays.sort(listCells, (str1, str2) -> str1.compareTo(str2));
-
-          thisMovie.Genre = new ArrayList<String>(Arrays.asList(listCells));
-          thisMovie.IMDB_Rating = Float.valueOf(listField.get(i++).toString());
-          thisMovie.Overview = Long.valueOf(listField.get(i++).toString());
-          thisMovie.Meta_score = Integer.valueOf(listField.get(i++).toString());
-          thisMovie.Director = listField.get(i++).toString();
-          thisMovie.Stars.add(listField.get(i++).toString());
-          thisMovie.Stars.add(listField.get(i++).toString());
-          thisMovie.Stars.add(listField.get(i++).toString());
-          thisMovie.Stars.add(listField.get(i++).toString());
-          thisMovie.No_of_Votes = Long.valueOf(listField.get(i++).toString());
-          thisMovie.Grosses = Long.valueOf(listField.get(i++).toString());
-        } catch (Exception e) {
-          continue;
-        }
+        //        try{
+        movieData thisMovie = new movieData(
+          listField.get(0),
+          listField.get(1),
+          listField.get(2),
+          listField.get(3),
+          listField.get(4),
+          listField.get(5),
+          listField.get(6),
+          listField.get(7),
+          listField.get(8),
+          listField.get(9),
+          listField.get(10),
+          listField.get(11),
+          listField.get(12),
+          listField.get(13),
+          listField.get(14),
+          listField.get(15)
+        );
         allMovies.add(thisMovie);
+        lineNum = 0;
+        //        }catch(Exception e){
+        //          continue;
+        //        }
+        // try {
+        //   thisMovie.Poster_Link = listField.get(0);
+        //   thisMovie.Series_Title = listField.get(1);
+        //   thisMovie.Released_Year = Integer.parseInt(listField.get(2));
+        //   thisMovie.Certificate = listField.get(3);
+        //   thisMovie.Runtime =
+        //     Integer.parseInt(listField.get(4).substring(0, 3).trim());
+        //   String[] listCells = listField.get(5).split(", ");
+        //   Arrays.sort(listCells, (str1, str2) -> str1.compareTo(str2));
+        //   thisMovie.Genre = new ArrayList<String>(Arrays.asList(listCells));
+        //   thisMovie.IMDB_Rating = Float.parseFloat(listField.get(6));
+        //   thisMovie.Overview = Long.parseLong(listField.get(7));
+        //   thisMovie.Meta_score = Integer.parseInt(listField.get(8));
+        //   thisMovie.Director = listField.get(9);
+        //   thisMovie.Stars.add(listField.get(10));
+        //   thisMovie.Stars.add(listField.get(11));
+        //   thisMovie.Stars.add(listField.get(12));
+        //   thisMovie.Stars.add(listField.get(13));
+        //   thisMovie.No_of_Votes = Long.parseLong(listField.get(14));
+        //   thisMovie.GRS = Long.parseLong(listField.get(15));
+        //   allMovies.add(thisMovie);
+        // } catch (Exception e) {
+        //   continue;
+        // }
+        // lineNum++;
       }
-      lineNum++;
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   public Map<Integer, Integer> getMovieCountByYear() {
-    Collections.sort(
-      allMovies,
-      (movieData movie1, movieData movie2) ->
-        movie2.Released_Year - movie1.Released_Year
+    // Collections.sort(
+    //   allMovies,
+    //   (movieData movie1, movieData movie2) ->
+    //     movie2.Released_Year - movie1.Released_Year
+    //   // movie2.Released_Year - movie1.Released_Year
+    // );
+    Map<Integer, Integer> ret = new TreeMap<Integer, Integer>(
+      new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+          return o2 - o1;
+        }
+      }
     );
-    Map<Integer, Integer> ret = new HashMap<Integer, Integer>();
     for (int i = 0; i < allMovies.size(); i++) {
-      movieData thisMovie = allMovies.get(i);
-      if (ret.containsKey(thisMovie.Released_Year)) {
-        ret.put(thisMovie.Released_Year, ret.get(thisMovie.Released_Year) + 1);
+      // movieData thisMovie = allMovies.get(i);
+      // if (ret.containsKey(thisMovie.Released_Year)) {
+      //   ret.put(thisMovie.Released_Year, ret.get(thisMovie.Released_Year) + 1);
+      // } else {
+      //   ret.put(thisMovie.Released_Year, 1);
+      // }
+      int thisYear = allMovies.get(i).Released_Year;
+      if (ret.containsKey(thisYear)) {
+        ret.put(thisYear, ret.get(thisYear) + 1);
       } else {
-        ret.put(thisMovie.Released_Year, 1);
+        ret.put(thisYear, 1);
       }
     }
     // todo: convert to stream.groupingby
     return ret;
   }
+
+  // public Map<Integer, Integer> getMovieCountByYear() {
+  //   Map<Integer, Integer> map = new TreeMap<Integer, Integer>(
+  //     new Comparator<Integer>() {
+  //       @Override
+  //       public int compare(Integer o1, Integer o2) {
+  //         return (int) (o2 - o1);
+  //       }
+  //     }
+  //   );
+
+  //   for (int i = 0; i < allMovies.size(); i++) {
+  //     int temp_year = allMovies.get(i).Released_Year;
+  //     if (map.get(temp_year) == null) {
+  //       map.put(temp_year, 1);
+  //     } else {
+  //       map.put(temp_year, map.get(temp_year) + 1);
+  //     }
+  //   }
+  //   return map;
+  // }
 
   public Map<String, Integer> getMovieCountByGenre() {
     // List<String> labels = new ArrayList<String>();
@@ -217,73 +302,70 @@ public class MovieAnalyzer {
         )
     );
 
-    Map<String, Integer> ret = new HashMap<String, Integer>();
+    Map<String, Integer> ret = new LinkedHashMap<String, Integer>();
     res
       .entrySet()
       .stream()
-      .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+      .sorted(Map.Entry.comparingByKey())
+      .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
       .forEachOrdered(x -> ret.put(x.getKey(), x.getValue()));
 
     return ret;
   }
 
   public Map<List<String>, Integer> getCoStarCount() {
-    List<String> stars = new ArrayList<String>();
-    for (int i = 0; i < allMovies.size(); i++) {
-      movieData thisMovie = allMovies.get(i);
-      if (stars.contains(thisMovie.Stars.get(1))) {
-        stars.add(thisMovie.Stars.get(1));
-      }
-      if (stars.contains(thisMovie.Stars.get(2))) {
-        stars.add(thisMovie.Stars.get(2));
-      }
-      if (stars.contains(thisMovie.Stars.get(3))) {
-        stars.add(thisMovie.Stars.get(3));
-      }
-      if (stars.contains(thisMovie.Stars.get(4))) {
-        stars.add(thisMovie.Stars.get(4));
-      }
-    }
-    Collections.sort(stars);
 
-    List<List<String>> coStars = new ArrayList<>();
-    for (int i = 0; i < stars.size() - 1; i++) {
-      for (int j = i; j < stars.size(); j++) {
-        List<String> starPair = new ArrayList<String>();
-        starPair.add(stars.get(i));
-        starPair.add(stars.get(j));
-        coStars.add(starPair);
-      }
-    }
-    // Map<List<String>, Integer> res = allMovies
-    //   .stream()
-    //   .flatMap(
-    //     movie -> movie.Stars.containsAll(element -> coStars.contains(element))
-    //   );
-    Map<List<String>, Integer> res = new HashMap<List<String>, Integer>();
+    Map<List<String>, Integer> res = new LinkedHashMap<List<String>, Integer>();
     allMovies.forEach(
-      movie ->
-        coStars.forEach(
-          pair -> {
-            if (movie.Stars.containsAll(pair)) {
-              if (res.containsKey(pair)) {
-                res.put(pair, res.get(pair) + 1);
-              } else {
+      movie -> {
+        for (int i = 0; i < 3; i++) {
+          for (int j = i + 1; j < 4; j++) {
+            for (Map.Entry<List<String>, Integer> entry : res.entrySet()) {
+              Boolean isModify = false;
+              if (
+                entry.getKey().contains(movie.Stars.get(i)) &&
+                entry.getKey().contains(movie.Stars.get(j))
+              ) {
+                entry.setValue(entry.getValue() + 1);
+                isModify = true;
+              }
+              if (!isModify) {
+                List<String> pair = new ArrayList<>();
+                pair.add(movie.Stars.get(i));
+                pair.add(movie.Stars.get(j));
                 res.put(pair, 1);
               }
             }
           }
-        )
+        }
+      }
     );
 
-    Map<List<String>, Integer> ret = new HashMap<List<String>, Integer>();
-    res
-      .entrySet()
-      .stream()
-      // .sorted(Map.Entry.comparingByKey())
-      .forEachOrdered(x -> ret.put(x.getKey(), x.getValue()));
+    // Map<List<String>, Integer> ret = new LinkedHashMap<List<String>, Integer>();
+    // res
+    //   .entrySet()
+    //   .stream()
+    //   // .sorted(Map.Entry.comparingByKey())
+    //   .forEachOrdered(x -> ret.put(x.getKey(), x.getValue()));
 
-    return ret;
+    return res;
+  }
+
+  public int compareOverview(movieData movie1, movieData movie2) {
+    String overview1 = movie1.Overview.trim();
+    String overview2 = movie2.Overview.trim();
+    return overview1.length() - overview2.length();
+    // if (overview1.length() > overview2.length()) {
+    //   return 1;
+    // }
+    // if (overview1.length() < overview2.length()) {
+    //   return 0;
+    // }
+    // if (movie1.Overview.compareTo(movie2.Overview) > 0) {
+    //   return 1;
+    // } else {
+    //   return 0;
+    // }
   }
 
   public List<String> getTopMovies(int top_k, String by) {
@@ -301,7 +383,8 @@ public class MovieAnalyzer {
       Collections.sort(
         allMovies,
         (movieData movie1, movieData movie2) ->
-          (int) (movie2.Overview - movie1.Overview)
+          // movie2.Overview.compareTo(movie1.Overview)
+          compareOverview(movie2, movie1)
       );
     }
 
@@ -326,13 +409,12 @@ public class MovieAnalyzer {
       Collections.sort(
         allMovies,
         (movieData movie1, movieData movie2) ->
-          (int) (movie2.No_of_Votes - movie1.No_of_Votes)
+          (int) Math.ceil(movie2.IMDB_Rating - movie1.IMDB_Rating)
       );
     } else {
       Collections.sort(
         allMovies,
-        (movieData movie1, movieData movie2) ->
-          (int) (movie2.Grosses - movie1.Grosses)
+        (movieData movie1, movieData movie2) -> (int) (movie2.GRS - movie1.GRS)
       );
     }
 
@@ -358,12 +440,13 @@ public class MovieAnalyzer {
         .stream()
         .filter(
           movie ->
-            movie.No_of_Votes >= min_rating &&
+            movie.IMDB_Rating >= min_rating &&
             movie.Runtime <= max_runtime &&
             movie.Genre.contains(genre)
         )
         .map(movie -> movie.Series_Title)
-        .sorted(Collections.reverseOrder())
+        // .sorted(Collections.reverseOrder())
+        .sorted()
         .collect(Collectors.toList());
     return res;
   }

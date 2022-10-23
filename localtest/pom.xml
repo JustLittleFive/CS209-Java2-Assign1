@@ -82,7 +82,6 @@
     <resources>
       <resource>
         <directory>src</directory>
-        <targetPath>target/classes</targetPath>
       </resource>
     </resources>
     <testSourceDirectory>test</testSourceDirectory>

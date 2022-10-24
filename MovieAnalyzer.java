@@ -105,10 +105,10 @@ public class MovieAnalyzer {
 
   ArrayList<MovieData> allMovies = new ArrayList<MovieData>();
 
-  public MovieAnalyzer(String dataset_path) {
+  public MovieAnalyzer(String datasetPath) {
     try {
       BufferedReader reader = new BufferedReader(
-          new InputStreamReader(new FileInputStream(dataset_path), "UTF-8")
+          new InputStreamReader(new FileInputStream(datasetPath), "UTF-8")
       );
       reader.readLine();
       String line = null;
@@ -157,6 +157,7 @@ public class MovieAnalyzer {
         );
         allMovies.add(thisMovie);
       }
+      reader.close();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -236,7 +237,8 @@ public class MovieAnalyzer {
             boolean flag = true;
             for (Map.Entry<List<String>, Integer> entry : res.entrySet()) {
               if (
-                  entry.getKey().get(0).equals(starList[i]) &&
+                  entry.getKey().get(0).equals(starList[i]) 
+                  &&
                   entry.getKey().get(1).equals(starList[j])
               ) {
                 entry.setValue(entry.getValue() + 1);
@@ -275,7 +277,7 @@ public class MovieAnalyzer {
     }
   }
 
-  public List<String> getTopMovies(int top_k, String by) {
+  public List<String> getTopMovies(int topk, String by) {
     Collections.sort(
         allMovies,
         (MovieData movie1, MovieData movie2) ->
@@ -298,13 +300,13 @@ public class MovieAnalyzer {
       allMovies
         .stream()
         .map(movie -> movie.seriesTitle)
-        .limit(top_k)
+        .limit(topk)
         .collect(Collectors.toList());
 
     return res;
   }
 
-  public List<String> getTopStars(int top_k, String by) {
+  public List<String> getTopStars(int topk, String by) {
     Collections.sort(
         allMovies,
         (MovieData movie1, MovieData movie2) ->
@@ -345,7 +347,7 @@ public class MovieAnalyzer {
           .entrySet()
           .stream()
           .sorted(Collections.reverseOrder(comparingByValue()))
-          .limit(top_k)
+          .limit(topk)
           .map(element -> element.getKey())
           .collect(Collectors.toList());
       return res;
@@ -383,7 +385,7 @@ public class MovieAnalyzer {
           .entrySet()
           .stream()
           .sorted(Collections.reverseOrder(comparingByValue()))
-          .limit(top_k)
+          .limit(topk)
           .map(element -> element.getKey())
           .collect(Collectors.toList());
       return res;

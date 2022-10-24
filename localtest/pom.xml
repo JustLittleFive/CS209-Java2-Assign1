@@ -79,11 +79,25 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <sourceDirectory>src</sourceDirectory> 
+    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <testOutputDirectory>${project.build.directory}/test-classes</testOutputDirectory>
     <resources>
       <resource>
         <directory>src</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
       </resource>
     </resources>
-    <testSourceDirectory>test</testSourceDirectory>
+    <testResources>
+      <testResource>
+        <directory>test</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
+      </testResource>
+    </testResources>
   </build>
 </project>

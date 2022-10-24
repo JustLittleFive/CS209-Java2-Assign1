@@ -20,8 +20,6 @@ import static java.util.Map.Entry.comparingByValue;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.lang.Math;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -403,8 +401,10 @@ public class MovieAnalyzer {
         .stream()
         .filter(
           movie ->
-            movie.imdbRating >= minRating &&
-            movie.runtime <= maxRuntime &&
+            movie.imdbRating >= minRating 
+            &&
+            movie.runtime <= maxRuntime 
+            &&
             movie.genre.contains(genre)
         )
         .map(movie -> movie.seriesTitle)
